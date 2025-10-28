@@ -62,12 +62,17 @@ defmodule Mix.Tasks.Compile.PrivateModule do
       Mix.Compilers.Elixir.read_manifest(Path.join(Mix.Project.manifest_path(), "compile.elixir"))
 
     Enum.filter(sources, fn source ->
-      PrivateModule in Mix.Compilers.Elixir.source(source, :compile_references)
+      PrivateModule in Mix.Compilers.Elixir.source(source, :compile_references) or
+        PrivateModule in Mix.Compilers.Elixir.source(source, :runtime_references)
     end)
     |> Enum.map(fn source ->
       Mix.Compilers.Elixir.source(source, :modules)
     end)
     |> List.flatten()
+    |> Enum.filter(fn module ->
+      # why can't read attribute?
+      Keyword.has_key?(module.__info__(:functions), :__private_module__)
+    end)
   end
 
   defp print_diagnostic_error(error) do
@@ -81,7 +86,7 @@ defmodule Mix.Tasks.Compile.PrivateModule do
       end)
       |> Enum.uniq()
 
-    to_module in private_modules and source_module in private_scopes
+    to_module not in private_modules or source_module in private_scopes
   end
 
   defp diagnostic({source_module, to_module, ctx}) do

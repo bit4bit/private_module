@@ -59,10 +59,8 @@ defmodule TestProject do
     compile_pid = self()
 
     Mix.Project.in_project(app_name, project_path(app_name), fn _ ->
-      ExUnit.CaptureIO.capture_io(fn ->
-        Mix.Task.clear()
-        send(compile_pid, {ref, Mix.Task.run("compile", ["--return-errors"])})
-      end)
+      Mix.Task.clear()
+      send(compile_pid, {ref, Mix.Task.run("compile", ["--return-errors"])})
     end)
 
     receive do
