@@ -26,3 +26,4 @@ private_module-*.tar
 # Temporary files, for example, from tests.
 /tmp/
 tmp/
+mix.lock

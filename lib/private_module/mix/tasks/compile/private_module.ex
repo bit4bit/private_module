@@ -1,4 +1,8 @@
 defmodule Mix.Tasks.Compile.PrivateModule do
+  @moduledoc """
+    Compiler that checks dependencies on private modules.
+  """
+
   use Mix.Task.Compiler
   require Mix.Compilers.Elixir
 

@@ -1,4 +1,6 @@
 defmodule TestProject do
+  @moduledoc false
+
   def setup(app_name) when is_atom(app_name) do
     File.rm_rf(project_path(app_name))
     File.mkdir_p!(project_path(app_name))
@@ -32,7 +34,7 @@ defmodule TestProject do
       # Run "mix help deps" to learn about dependencies.
       defp deps do
         [
-          {:private_module, path: "#{Path.absname(".")}"}
+          {:private_module, path: "#{Path.absname(".")}", runtime: false}
         ]
       end
     end
@@ -62,7 +64,7 @@ defmodule TestProject do
           {:error, diagnostics} ->
             {
               :error,
-              Enum.map(diagnostics, & &1.message) |> Enum.join("\n")
+              Enum.map_join(diagnostics, "\n", & &1.message)
             }
         end
     after
