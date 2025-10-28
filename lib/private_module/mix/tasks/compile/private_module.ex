@@ -84,7 +84,7 @@ defmodule Mix.Tasks.Compile.PrivateModule do
           end
         end)
 
-         Mix.shell().info("")
+      Mix.shell().info("")
       Enum.each(errors, &print_diagnostic_error/1)
       {:error, diagnostics ++ errors}
     end
@@ -111,7 +111,7 @@ defmodule Mix.Tasks.Compile.PrivateModule do
       file: nil,
       message: message,
       position: 0,
-      severity: :warning
+      severity: :error
     }
     |> struct([])
   end

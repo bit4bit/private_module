@@ -38,4 +38,25 @@ defmodule PrivateModuleTest do
     assert error =~
              ~r/Module Elixir.DemoNotAllowed is not allowed to call private module Elixir.Demo.Private/
   end
+
+  test "module allowed to call private module" do
+    TestProject.setup(:test3)
+
+    TestProject.insert_code(:test3, """
+    defmodule Demo do
+      def hello do
+        Demo.Private.hello()
+      end
+    end
+
+    defmodule Demo.Private do
+      use PrivateModule
+      def hello do
+        :hello
+      end
+    end
+    """)
+
+    assert TestProject.compile(:test3) == :ok
+  end
 end
