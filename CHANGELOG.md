@@ -7,10 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Support for `--warnings-as-errors` command line flag
+- Respect `warnings_as_errors` setting in `elixirc_options`
+
 ### Fixed
 - Fixed transitive module access through public modules
 - Improved private module identification to only tag modules that actually use `PrivateModule`
 - Fixed access control logic to properly allow calls to non-private modules
+
+### Changed
+- Private module violations now respect warnings-as-errors configuration instead of always failing compilation
 
 ## [0.1.0] - 2024-12-19
 

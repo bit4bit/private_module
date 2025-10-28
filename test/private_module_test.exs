@@ -37,7 +37,7 @@ defmodule PrivateModuleTest do
       """
     end)
 
-    {:error, error} = TestProject.compile(test_project)
+    {:error, error} = TestProject.compile(test_project, ["--warnings-as-errors"])
 
     assert error =~
              ~r/Module Elixir.#{TestProject.ns(test_project)}.DemoNotAllowed is not allowed to call private module Elixir.#{TestProject.ns(test_project)}.Demo.Private/
@@ -63,7 +63,7 @@ defmodule PrivateModuleTest do
       """
     end)
 
-    assert TestProject.compile(test_project) == :ok
+    assert TestProject.compile(test_project, ["--warnings-as-errors"]) == :ok
   end
 
   test "transitive module allowed to call private module" do
@@ -92,6 +92,6 @@ defmodule PrivateModuleTest do
       """
     end)
 
-    assert TestProject.compile(test_project) == :ok
+    assert TestProject.compile(test_project, ["--warnings-as-errors"]) == :ok
   end
 end

@@ -9,11 +9,14 @@ defmodule Mix.Tasks.Compile.PrivateModule do
   alias PrivateModule.CompilerState
 
   @impl Mix.Task.Compiler
-  def run(_argv) do
+  def run(argv) do
+    {parsed_opts, _remaining_args, _invalid} =
+      OptionParser.parse(argv, switches: [warnings_as_errors: :boolean])
+
     {:ok, _} = CompilerState.start_link()
 
     Mix.Task.Compiler.after_compiler(:elixir, &after_elixir_compiler/1)
-    Mix.Task.Compiler.after_compiler(:app, &after_app_compiler/1)
+    Mix.Task.Compiler.after_compiler(:app, &after_app_compiler(&1, parsed_opts))
     tracers = Code.get_compiler_option(:tracers)
     Code.put_compiler_option(:tracers, [__MODULE__ | tracers])
     {:ok, []}
@@ -36,7 +39,7 @@ defmodule Mix.Tasks.Compile.PrivateModule do
     outcome
   end
 
-  defp after_app_compiler(outcome) do
+  defp after_app_compiler(outcome, parsed_opts) do
     private_modules = read_private_modules()
 
     with {status, diagnostics} when status in [:ok, :noop] <- outcome do
@@ -50,7 +53,12 @@ defmodule Mix.Tasks.Compile.PrivateModule do
       if length(errors) > 0 do
         Mix.shell().info("")
         Enum.each(errors, &print_diagnostic_error/1)
-        {:error, diagnostics ++ errors}
+        # only error when warnings-as-error is set
+        if warnings_as_errors?(parsed_opts) do
+          {:error, diagnostics ++ errors}
+        else
+          {:ok, diagnostics ++ errors}
+        end
       else
         {:ok, diagnostics}
       end
@@ -99,5 +107,14 @@ defmodule Mix.Tasks.Compile.PrivateModule do
       position: ctx.line,
       severity: :error
     }
+  end
+
+  defp warnings_as_errors?(parsed_opts) do
+    config_warnings_as_errors =
+      Mix.Project.config()[:elixirc_options][:warnings_as_errors] || false
+
+    cli_warnings_as_errors = Keyword.get(parsed_opts, :warnings_as_errors, false)
+
+    config_warnings_as_errors || cli_warnings_as_errors
   end
 end

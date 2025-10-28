@@ -16,6 +16,7 @@ defmodule PrivateModule do
     def project do
       [
         compilers: [:private_module] ++ Mix.compilers(),
+        elixirc_options: [warnings_as_errors: true]
       ]
     end
 

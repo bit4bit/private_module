@@ -54,13 +54,13 @@ defmodule TestProject do
     File.write!(Path.join(project_path, "mix.exs"), mix_source)
   end
 
-  def compile(app_name) do
+  def compile(app_name, args \\ []) do
     ref = make_ref()
     compile_pid = self()
 
     Mix.Project.in_project(app_name, project_path(app_name), fn _ ->
       Mix.Task.clear()
-      send(compile_pid, {ref, Mix.Task.run("compile", ["--return-errors"])})
+      send(compile_pid, {ref, Mix.Task.run("compile", ["--return-errors"] ++ args)})
     end)
 
     receive do
