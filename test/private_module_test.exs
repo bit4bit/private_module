@@ -63,6 +63,35 @@ defmodule PrivateModuleTest do
       """
     end)
 
-    assert TestProject.compile(:test3) == :ok
+    assert TestProject.compile(test_project) == :ok
+  end
+
+  test "transitive module allowed to call private module" do
+    test_project = TestProject.setup()
+
+    TestProject.insert_code(test_project, fn ns ->
+      """
+      defmodule #{ns}.Demo do
+        def hello do
+          #{ns}.Demo.Secret.hello()
+        end
+      end
+
+      defmodule #{ns}.Demo.Secret do
+        use PrivateModule
+        def hello do
+          :hello
+        end
+      end
+
+      defmodule #{ns}.DemoTransative do
+        def hello do
+          #{ns}.Demo.hello()
+        end
+      end
+      """
+    end)
+
+    assert TestProject.compile(test_project) == :ok
   end
 end
