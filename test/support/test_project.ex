@@ -1,17 +1,14 @@
 defmodule TestProject do
   def setup(app_name) when is_atom(app_name) do
     File.rm_rf(project_path(app_name))
-
-    ExUnit.CaptureIO.capture_io(fn ->
-      Mix.Task.clear()
-      Mix.Tasks.New.run([project_path(app_name), "--app", app_name |> to_string()])
-      init_mix(project_path(app_name), app_name)
-    end)
+    File.mkdir_p!(project_path(app_name))
+    File.mkdir_p!(Path.join(project_path(app_name), "lib"))
+    init_mix(project_path(app_name), app_name)
   end
 
   defp init_mix(project_path, app_name) do
     mix_source = """
-    defmodule Test1.MixProject do
+    defmodule #{Macro.camelize(to_string(app_name))}.MixProject do
       use Mix.Project
 
       def project do
@@ -45,29 +42,6 @@ defmodule TestProject do
     File.write!(Path.join(project_path, "mix.exs"), mix_source)
   end
 
-  defp add_dependencies(project_path, deps) do
-    mix_exs_path = Path.join(project_path, "mix.exs")
-    mix_exs = File.read!(mix_exs_path)
-
-    deps_code =
-      deps
-      |> Enum.map(fn
-        {name, opts} -> ":#{name}, #{inspect(opts)}"
-        other -> inspect(other)
-      end)
-      |> Enum.map(&"{#{&1}}")
-      |> Enum.join(",\n      ")
-
-    updated_mix_exs =
-      Regex.replace(
-        ~r/defp deps do\s*\[.*?\]\s*end/s,
-        mix_exs,
-        "defp deps do\n    [\n      #{deps_code}\n    ]\n  end"
-      )
-
-    File.write!(mix_exs_path, updated_mix_exs)
-  end
-
   def compile(app_name) do
     ref = make_ref()
     compile_pid = self()
@@ -96,8 +70,11 @@ defmodule TestProject do
     end
   end
 
-  def insert_code(app_name, body) when is_atom(app_name) do
-    File.write!("#{project_path(app_name)}/lib/#{app_name}_test_project.ex", body)
+  def insert_code(app_name, fun) when is_atom(app_name) do
+    File.write!(
+      "#{project_path(app_name)}/lib/#{app_name}_test_project.ex",
+      fun.(Macro.camelize(to_string(app_name)))
+    )
   end
 
   defp project_path(app_name) do

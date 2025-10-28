@@ -15,16 +15,15 @@ defmodule Mix.Tasks.Compile.PrivateModule do
       {:ok, %{}}
     end
 
-    def add_reference(from, to) do
+    def add_dependency(from, to) do
       :ets.insert(__MODULE__, {{from, to}, to})
       :ok
     end
 
-    def references do
+    def select_dependencies(criteria_fun) do
       :ets.tab2list(__MODULE__)
-      |> Enum.map(fn {row, _} ->
-        row
-      end)
+      |> Enum.map(&elem(&1, 0))
+      |> Enum.filter(criteria_fun)
     end
   end
 
@@ -33,6 +32,7 @@ defmodule Mix.Tasks.Compile.PrivateModule do
   def run(_argv) do
     {:ok, _} = CompilerState.start_link()
 
+    Mix.Task.Compiler.after_compiler(:elixir, &after_elixir_compiler/1)
     Mix.Task.Compiler.after_compiler(:app, &after_app_compiler/1)
     tracers = Code.get_compiler_option(:tracers)
     Code.put_compiler_option(:tracers, [__MODULE__ | tracers])
@@ -42,12 +42,18 @@ defmodule Mix.Tasks.Compile.PrivateModule do
   def trace({remote, _, to_module, _name, _arity}, env)
       when remote in [:remote_function, :local_function] and
              to_module not in [:elixir_utils, :elixir_module, Module, :elixir_def] do
-    CompilerState.add_reference(env.module, to_module)
+    CompilerState.add_dependency(env.module, to_module)
     :ok
   end
 
   def trace(_trace, _env) do
     :ok
+  end
+
+  defp after_elixir_compiler(outcome) do
+    tracers = Enum.reject(Code.get_compiler_option(:tracers), &(&1 == __MODULE__))
+    Code.put_compiler_option(:tracers, tracers)
+    outcome
   end
 
   defp after_app_compiler(outcome) do
@@ -64,29 +70,20 @@ defmodule Mix.Tasks.Compile.PrivateModule do
       |> List.flatten()
 
     with {status, diagnostics} when status in [:ok, :noop] <- outcome do
-      errors =
-        Enum.reduce_while(CompilerState.references(), [], fn {source_module, to_module}, errors ->
-          cond do
-            to_module not in private_modules ->
-              {:cont, errors}
-
-            allowed_to_use_private_module?(source_module, to_module, private_modules) ->
-              {:cont, errors}
-
-            true ->
-              {:cont,
-               errors ++
-                 [
-                   diagnostic(
-                     "Module #{source_module} is not allowed to call private module #{to_module}"
-                   )
-                 ]}
-          end
+      invalid_dependencies =
+        CompilerState.select_dependencies(fn {source_module, to_module} ->
+          not allowed_to_use_private_module?(source_module, to_module, private_modules)
         end)
 
-      Mix.shell().info("")
-      Enum.each(errors, &print_diagnostic_error/1)
-      {:error, diagnostics ++ errors}
+      errors = Enum.map(invalid_dependencies, &diagnostic/1)
+
+      if length(errors) > 0 do
+        Mix.shell().info("")
+        Enum.each(errors, &print_diagnostic_error/1)
+        {:error, diagnostics ++ errors}
+      else
+        {:ok, diagnostics}
+      end
     end
   end
 
@@ -104,12 +101,12 @@ defmodule Mix.Tasks.Compile.PrivateModule do
     to_module in private_modules and source_module in private_scopes
   end
 
-  defp diagnostic(message) do
+  defp diagnostic({source_module, to_module}) do
     %Mix.Task.Compiler.Diagnostic{
-      compiler_name: "defmodulep",
+      compiler_name: "private_module",
       details: nil,
       file: nil,
-      message: message,
+      message: "Module #{source_module} is not allowed to call private module #{to_module}",
       position: 0,
       severity: :error
     }

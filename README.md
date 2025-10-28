@@ -18,6 +18,13 @@ defmodule Component.SubComponent do
   end
 end
 
+defmodule ComponentState do
+  defmodule State do
+    # Only can be used by ComponentState (Parent)
+    use PrivateModule
+  end
+end
+
 defmodule OtherComponent do
   def call do
     # Not allowed

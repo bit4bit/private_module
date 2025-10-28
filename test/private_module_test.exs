@@ -5,12 +5,14 @@ defmodule PrivateModuleTest do
   test "compile test project" do
     TestProject.setup(:test1)
 
-    TestProject.insert_code(:test1, """
-    defmodule Demo do
-      def hello do
+    TestProject.insert_code(:test1, fn ns ->
+      """
+      defmodule #{ns}.Demo do
+        def hello do
+        end
       end
-    end
-    """)
+      """
+    end)
 
     assert TestProject.compile(:test1) == :ok
   end
@@ -18,44 +20,48 @@ defmodule PrivateModuleTest do
   test "module not allowed to call private module" do
     TestProject.setup(:test2)
 
-    TestProject.insert_code(:test2, """
-    defmodule DemoNotAllowed do
-      def hello do
-        Demo.Private.hello()
+    TestProject.insert_code(:test2, fn ns ->
+      """
+      defmodule #{ns}.DemoNotAllowed do
+        def hello do
+          #{ns}.Demo.Private.hello()
+        end
       end
-    end
 
-    defmodule Demo.Private do
-      use PrivateModule
-      def hello do
-        :hello
+      defmodule #{ns}.Demo.Private do
+        use PrivateModule
+        def hello do
+          :hello
+        end
       end
-    end
-    """)
+      """
+    end)
 
     {:error, error} = TestProject.compile(:test2)
 
     assert error =~
-             ~r/Module Elixir.DemoNotAllowed is not allowed to call private module Elixir.Demo.Private/
+             ~r/Module Elixir.Test2.DemoNotAllowed is not allowed to call private module Elixir.Test2.Demo.Private/
   end
 
   test "module allowed to call private module" do
     TestProject.setup(:test3)
 
-    TestProject.insert_code(:test3, """
-    defmodule Demo do
-      def hello do
-        Demo.Private.hello()
+    TestProject.insert_code(:test3, fn ns ->
+      """
+      defmodule #{ns}.Demo do
+        def hello do
+          #{ns}.Demo.Private.hello()
+        end
       end
-    end
 
-    defmodule Demo.Private do
-      use PrivateModule
-      def hello do
-        :hello
+      defmodule #{ns}.Demo.Private do
+        use PrivateModule
+        def hello do
+          :hello
+        end
       end
-    end
-    """)
+      """
+    end)
 
     assert TestProject.compile(:test3) == :ok
   end
