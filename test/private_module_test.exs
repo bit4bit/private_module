@@ -3,9 +3,9 @@ defmodule PrivateModuleTest do
   require TestProject
 
   test "compile test project" do
-    TestProject.setup(:test1)
+    test_project = TestProject.setup()
 
-    TestProject.insert_code(:test1, fn ns ->
+    TestProject.insert_code(test_project, fn ns ->
       """
       defmodule #{ns}.Demo do
         def hello do
@@ -14,13 +14,13 @@ defmodule PrivateModuleTest do
       """
     end)
 
-    assert TestProject.compile(:test1) == :ok
+    assert TestProject.compile(test_project) == :ok
   end
 
   test "module not allowed to call private module" do
-    TestProject.setup(:test2)
+    test_project = TestProject.setup()
 
-    TestProject.insert_code(:test2, fn ns ->
+    TestProject.insert_code(test_project, fn ns ->
       """
       defmodule #{ns}.DemoNotAllowed do
         def hello do
@@ -37,16 +37,16 @@ defmodule PrivateModuleTest do
       """
     end)
 
-    {:error, error} = TestProject.compile(:test2)
+    {:error, error} = TestProject.compile(test_project)
 
     assert error =~
-             ~r/Module Elixir.Test2.DemoNotAllowed is not allowed to call private module Elixir.Test2.Demo.Private/
+             ~r/Module Elixir.#{TestProject.ns(test_project)}.DemoNotAllowed is not allowed to call private module Elixir.#{TestProject.ns(test_project)}.Demo.Private/
   end
 
   test "module allowed to call private module" do
-    TestProject.setup(:test3)
+    test_project = TestProject.setup()
 
-    TestProject.insert_code(:test3, fn ns ->
+    TestProject.insert_code(test_project, fn ns ->
       """
       defmodule #{ns}.Demo do
         def hello do

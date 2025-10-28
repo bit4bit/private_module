@@ -1,16 +1,26 @@
 defmodule TestProject do
   @moduledoc false
 
+  def setup do
+    setup(:"test#{:erlang.unique_integer([:positive, :monotonic])}")
+  end
+
   def setup(app_name) when is_atom(app_name) do
     File.rm_rf(project_path(app_name))
     File.mkdir_p!(project_path(app_name))
     File.mkdir_p!(Path.join(project_path(app_name), "lib"))
     init_mix(project_path(app_name), app_name)
+
+    app_name
+  end
+
+  def ns(app_name) do
+    Macro.camelize(to_string(app_name))
   end
 
   defp init_mix(project_path, app_name) do
     mix_source = """
-    defmodule #{Macro.camelize(to_string(app_name))}.MixProject do
+    defmodule #{ns(app_name)}.MixProject do
       use Mix.Project
 
       def project do
@@ -75,7 +85,7 @@ defmodule TestProject do
   def insert_code(app_name, fun) when is_atom(app_name) do
     File.write!(
       "#{project_path(app_name)}/lib/#{app_name}_test_project.ex",
-      fun.(Macro.camelize(to_string(app_name)))
+      fun.(ns(app_name))
     )
   end
 
