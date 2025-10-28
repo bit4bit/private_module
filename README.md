@@ -1,6 +1,6 @@
 # PrivateModule
 
-This library check a compile time the private module.
+This library check a compile time the private module. A private module is a module that can only be used by its parent module.
 
 ```elixir
 defmodule Component do
