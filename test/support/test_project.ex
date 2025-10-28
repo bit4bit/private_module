@@ -1,15 +1,15 @@
 defmodule TestProject do
   @moduledoc false
 
-  def setup do
-    setup(:"test#{:erlang.unique_integer([:positive, :monotonic])}")
+  def setup(opts \\ []) do
+    setup(:"test#{:erlang.unique_integer([:positive, :monotonic])}", opts)
   end
 
-  def setup(app_name) when is_atom(app_name) do
+  def setup(app_name, opts) when is_atom(app_name) do
     File.rm_rf(project_path(app_name))
     File.mkdir_p!(project_path(app_name))
     File.mkdir_p!(Path.join(project_path(app_name), "lib"))
-    init_mix(project_path(app_name), app_name)
+    init_mix(project_path(app_name), app_name, opts)
 
     app_name
   end
@@ -18,7 +18,10 @@ defmodule TestProject do
     Macro.camelize(to_string(app_name))
   end
 
-  defp init_mix(project_path, app_name) do
+  defp init_mix(project_path, app_name, opts) do
+    elixirc_options = Keyword.get(opts, :project, [])
+   |> Keyword.get(:elixirc_options, []) |> inspect()
+
     mix_source = """
     defmodule #{ns(app_name)}.MixProject do
       use Mix.Project
@@ -30,6 +33,7 @@ defmodule TestProject do
           elixir: "~> 1.14",
           compilers: [:private_module] ++ Mix.compilers(),
           start_permanent: Mix.env() == :prod,
+          elixirc_options: #{if (String.length(elixirc_options) > 0), do: "#{elixirc_options},", else: ""}
           deps: deps()
         ]
       end

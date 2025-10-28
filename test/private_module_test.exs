@@ -17,7 +17,7 @@ defmodule PrivateModuleTest do
     assert TestProject.compile(test_project) == :ok
   end
 
-  test "module not allowed to call private module" do
+  test "module not allowed to call private module using cli --warnings-as-errors" do
     test_project = TestProject.setup()
 
     TestProject.insert_code(test_project, fn ns ->
@@ -38,6 +38,32 @@ defmodule PrivateModuleTest do
     end)
 
     {:error, error} = TestProject.compile(test_project, ["--warnings-as-errors"])
+
+    assert error =~
+             ~r/Module Elixir.#{TestProject.ns(test_project)}.DemoNotAllowed is not allowed to call private module Elixir.#{TestProject.ns(test_project)}.Demo.Private/
+  end
+
+  test "module not allowed to call private module using elixirc_options" do
+    test_project = TestProject.setup(project: [elixirc_options: [warnings_as_errors: true]])
+
+    TestProject.insert_code(test_project, fn ns ->
+      """
+      defmodule #{ns}.DemoNotAllowed do
+        def hello do
+          #{ns}.Demo.Private.hello()
+        end
+      end
+
+      defmodule #{ns}.Demo.Private do
+        use PrivateModule
+        def hello do
+          :hello
+        end
+      end
+      """
+    end)
+
+    {:error, error} = TestProject.compile(test_project)
 
     assert error =~
              ~r/Module Elixir.#{TestProject.ns(test_project)}.DemoNotAllowed is not allowed to call private module Elixir.#{TestProject.ns(test_project)}.Demo.Private/
