@@ -21,9 +21,14 @@ defmodule Mix.Tasks.Compile.PrivateModule do
     end
 
     def select_dependencies(criteria_fun) do
-      :ets.tab2list(__MODULE__)
-      |> Enum.map(&elem(&1, 0))
-      |> Enum.filter(criteria_fun)
+      Stream.unfold(
+        :ets.first(__MODULE__),
+        fn
+          :"$end_of_table" -> nil
+          key -> {key, :ets.next(__MODULE__, key)}
+        end
+      )
+      |> Stream.filter(criteria_fun)
     end
   end
 
@@ -57,17 +62,7 @@ defmodule Mix.Tasks.Compile.PrivateModule do
   end
 
   defp after_app_compiler(outcome) do
-    {_, sources} =
-      Mix.Compilers.Elixir.read_manifest(Path.join(Mix.Project.manifest_path(), "compile.elixir"))
-
-    private_modules =
-      Enum.filter(sources, fn source ->
-        PrivateModule in Mix.Compilers.Elixir.source(source, :compile_references)
-      end)
-      |> Enum.map(fn source ->
-        Mix.Compilers.Elixir.source(source, :modules)
-      end)
-      |> List.flatten()
+    private_modules = read_private_modules()
 
     with {status, diagnostics} when status in [:ok, :noop] <- outcome do
       invalid_dependencies =
@@ -85,6 +80,19 @@ defmodule Mix.Tasks.Compile.PrivateModule do
         {:ok, diagnostics}
       end
     end
+  end
+
+  defp read_private_modules do
+    {_, sources} =
+      Mix.Compilers.Elixir.read_manifest(Path.join(Mix.Project.manifest_path(), "compile.elixir"))
+
+    Enum.filter(sources, fn source ->
+      PrivateModule in Mix.Compilers.Elixir.source(source, :compile_references)
+    end)
+    |> Enum.map(fn source ->
+      Mix.Compilers.Elixir.source(source, :modules)
+    end)
+    |> List.flatten()
   end
 
   defp print_diagnostic_error(error) do
