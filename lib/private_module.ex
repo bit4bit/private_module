@@ -1,18 +1,12 @@
 defmodule PrivateModule do
-  @moduledoc """
-  Documentation for `PrivateModule`.
-  """
+  defmacro __using__(_opts) do
+    quote do
+      @before_compile PrivateModule
+    end
+  end
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> PrivateModule.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  defmacro __before_compile__(_env) do
+    quote do
+    end
   end
 end

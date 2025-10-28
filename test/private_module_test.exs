@@ -1,8 +1,41 @@
 defmodule PrivateModuleTest do
-  use ExUnit.Case
-  doctest PrivateModule
+  use ExUnit.Case, async: false
+  require TestProject
 
-  test "greets the world" do
-    assert PrivateModule.hello() == :world
+  test "compile test project" do
+    TestProject.setup(:test1)
+
+    TestProject.insert_code(:test1, """
+    defmodule Demo do
+      def hello do
+      end
+    end
+    """)
+
+    assert TestProject.compile(:test1) == :ok
+  end
+
+  test "module not allowed to call private module" do
+    TestProject.setup(:test2)
+
+    TestProject.insert_code(:test2, """
+    defmodule DemoNotAllowed do
+      def hello do
+        Demo.Private.hello()
+      end
+    end
+
+    defmodule Demo.Private do
+      use PrivateModule
+      def hello do
+        :hello
+      end
+    end
+    """)
+
+    {:error, error} = TestProject.compile(:test2)
+
+    assert error =~
+             ~r/Module Elixir.DemoNotAllowed is not allowed to call private module Elixir.Demo.Private/
   end
 end
