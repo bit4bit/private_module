@@ -15,16 +15,17 @@ defmodule PrivateModule do
 
     def project do
       [
-        compilers: [:private_module] ++ Mix.compilers(),
+        compilers: extra_compilers(Mix.env()) ++ Mix.compilers(),
         elixirc_options: [warnings_as_errors: true]
       ]
     end
 
     # ...
-
+    defp extra_compilers(:prod), do: []
+    defp extra_compilers(_), do: [:private_module]
     defp deps do
       [
-        {:private_module, "~> 0.1", runtime: false},
+        {:private_module, "~> 0.1", only: [:dev, :test], runtime: false},
       ]
     end
 
