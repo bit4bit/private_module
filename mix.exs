@@ -62,7 +62,7 @@ defmodule PrivateModule.MixProject do
   defp docs do
     [
       main: "PrivateModule",
-      extras: ["README.md", "CHANGELOG.md"],
+      extras: ["README.md"],
       source_ref: "v0.1.1",
       source_url: "https://github.com/bit4bit/private_module"
     ]
