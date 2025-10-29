@@ -51,7 +51,7 @@ defmodule PrivateModule.MixProject do
   defp package do
     [
       name: "private_module",
-      files: ~w(lib .formatter.exs mix.exs README* LICENSE* CHANGELOG*),
+      files: ~w(lib .formatter.exs mix.exs README* LICENSE*),
       licenses: ["MIT"],
       links: %{
         "GitHub" => "https://github.com/bit4bit/private_module"
