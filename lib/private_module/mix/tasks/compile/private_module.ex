@@ -38,7 +38,12 @@ defmodule Mix.Tasks.Compile.PrivateModule do
     :ok
   end
 
-  def trace(_trace, _env) do
+  def trace({:struct_expansion, _, to_module, _}, env) do
+    CompilerState.add_dependency(env.module, to_module, %{file: env.file, line: env.line})
+    :ok
+  end
+
+  def trace(trace, env) do
     :ok
   end
 
@@ -90,7 +95,7 @@ defmodule Mix.Tasks.Compile.PrivateModule do
       details: nil,
       file: ctx.file,
       message:
-        "Module #{source_module} is not allowed to call private module #{to_module}\n at #{ctx.file}:#{ctx.line}",
+        "Module #{source_module} is not allowed to use private module #{to_module}\n at #{ctx.file}:#{ctx.line}",
       position: ctx.line,
       severity: :warning
     }

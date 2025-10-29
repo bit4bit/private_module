@@ -36,11 +36,15 @@ defmodule PrivateModule do
 
   ```elixir
   defmodule Implementation do
+    # ...
+
     defmodule State do
       # Private module only allowed to be used within the parent module.
       # If the module is used outside the parent module, it will raise an error at compile time.
       use PrivateModule
     end
+
+    # ...
   end
   ```
 

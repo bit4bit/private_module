@@ -5,6 +5,7 @@
 
 PrivateModule is an Elixir library that introduces the concept of private modules - modules that can only be used within their parent module. This helps enforce encapsulation and prevents external access to internal implementation details.
 
+For a more flexible approach consider using [boundary](https://github.com/sasa1977/boundary).
 
 ## Documentation
 
