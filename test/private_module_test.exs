@@ -205,4 +205,28 @@ defmodule PrivateModuleTest do
 
     assert TestProject.compile(test_project, ["--warnings-as-errors"]) == :ok
   end
+
+  test "module allowed to call private module specify module" do
+    test_project = TestProject.setup()
+
+    TestProject.insert_code(test_project, fn ns ->
+      """
+      defmodule #{ns}.DemoTitan do
+        def hello do
+          #{ns}.Demo.Private.hello()
+        end
+      end
+
+      defmodule #{ns}.Demo.Private do
+        # use with caution
+        use PrivateModule, for: [#{ns}.DemoTitan]
+        def hello do
+          :hello
+        end
+      end
+      """
+    end)
+
+    assert TestProject.compile(test_project, ["--warnings-as-errors"]) == :ok
+  end
 end

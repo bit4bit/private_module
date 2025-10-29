@@ -30,10 +30,17 @@ defmodule Mix.Tasks.Compile.PrivateModule do
   end
 
   def trace({:on_module, _bytecode, _ignore}, env) do
-    if private_module?(env.module) do
+    on_private_module(env.module, fn %{for_scopes: for_scopes} ->
       CompilerState.add_private_module(env.module)
-      CompilerState.add_private_scope(private_scope_of(env.module))
-    end
+
+      if length(for_scopes) > 0 do
+        for custom_scope <- for_scopes do
+          CompilerState.add_private_scope(custom_scope)
+        end
+      else
+        CompilerState.add_private_scope(private_scope_of(env.module))
+      end
+    end)
 
     :ok
   end
@@ -118,6 +125,12 @@ defmodule Mix.Tasks.Compile.PrivateModule do
 
   defp private_module?(name) when is_atom(name) do
     Module.defines?(name, {:__private_module__, 0}, :def)
+  end
+
+  defp on_private_module(name, fun) do
+    if private_module?(name) do
+      fun.(name.__private_module__())
+    end
   end
 
   defp private_scope_of(name) when is_atom(name) do

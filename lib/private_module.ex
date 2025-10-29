@@ -52,9 +52,9 @@ defmodule PrivateModule do
 
   """
 
-  defmacro __using__(_opts) do
+  defmacro __using__(opts) do
     quote do
-      def __private_module__, do: true
+      def __private_module__, do: %{for_scopes: unquote(Keyword.get(opts, :for, []))}
     end
   end
 end

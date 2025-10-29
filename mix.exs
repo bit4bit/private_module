@@ -4,7 +4,7 @@ defmodule PrivateModule.MixProject do
   def project do
     [
       app: :private_module,
-      version: "0.1.7",
+      version: "0.1.8",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -43,8 +43,8 @@ defmodule PrivateModule.MixProject do
 
   defp description do
     """
-    PrivateModule allows you to define modules that can only be accessed from their parent module,
-    enforced at compile time with clear error messages.
+    PrivateModule is a library that allows to have the concept of private modules,
+    where a PrivateModule is a module that can only be used within the parent module.
     """
   end
 
