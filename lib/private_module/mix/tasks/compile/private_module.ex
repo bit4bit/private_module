@@ -85,7 +85,13 @@ defmodule Mix.Tasks.Compile.PrivateModule do
     if not CompilerState.private_module?(to_module) do
       true
     else
-      CompilerState.belongs_private_scope?(source_module)
+      CompilerState.select_private_scopes(fn scope ->
+        source_module_parts = Module.split(source_module)
+        private_scope_parts = Module.split(scope)
+        private_scope_parts == Enum.take(source_module_parts, length(private_scope_parts))
+      end)
+      |> Enum.empty?()
+      |> Kernel.not()
     end
   end
 

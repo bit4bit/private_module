@@ -34,8 +34,15 @@ defmodule PrivateModule.CompilerState do
     :ok
   end
 
-  def belongs_private_scope?(module) do
-    :ets.member(private_scopes_table(), module)
+  def select_private_scopes(criteria_fun) do
+    Stream.unfold(
+      :ets.first(private_scopes_table()),
+      fn
+        :"$end_of_table" -> nil
+        key -> {key, :ets.next(private_scopes_table(), key)}
+      end
+    )
+    |> Stream.filter(criteria_fun)
   end
 
   def select_dependencies(criteria_fun) do
