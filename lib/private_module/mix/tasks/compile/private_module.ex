@@ -43,7 +43,7 @@ defmodule Mix.Tasks.Compile.PrivateModule do
     :ok
   end
 
-  def trace(trace, env) do
+  def trace(_trace, _env) do
     :ok
   end
 
