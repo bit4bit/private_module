@@ -19,8 +19,8 @@ defmodule TestProject do
   end
 
   defp init_mix(project_path, app_name, opts) do
-    elixirc_options = Keyword.get(opts, :project, [])
-   |> Keyword.get(:elixirc_options, []) |> inspect()
+    elixirc_options =
+      Keyword.get(opts, :project, []) |> Keyword.get(:elixirc_options, []) |> inspect()
 
     mix_source = """
     defmodule #{ns(app_name)}.MixProject do
@@ -33,7 +33,7 @@ defmodule TestProject do
           elixir: "~> 1.14",
           compilers: [:private_module] ++ Mix.compilers(),
           start_permanent: Mix.env() == :prod,
-          elixirc_options: #{if (String.length(elixirc_options) > 0), do: "#{elixirc_options},", else: ""}
+          elixirc_options: #{if String.length(elixirc_options) > 0, do: "#{elixirc_options},", else: ""}
           deps: deps()
         ]
       end
