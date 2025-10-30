@@ -8,6 +8,8 @@ defmodule Mix.Tasks.Compile.PrivateModule do
 
   alias PrivateModule.CompilerState
 
+  @recursive true
+
   @impl Mix.Task.Compiler
   def run(argv) do
     {parsed_opts, _remaining_args, _invalid} =
