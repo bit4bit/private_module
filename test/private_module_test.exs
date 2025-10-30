@@ -69,6 +69,80 @@ defmodule PrivateModuleTest do
              ~r/Module Elixir.#{TestProject.ns(test_project)}.DemoNotAllowed is not allowed to use private module Elixir.#{TestProject.ns(test_project)}.Demo.Private/
   end
 
+  test "module not allowed to alias private module" do
+    test_project = TestProject.setup(project: [elixirc_options: [warnings_as_errors: true]])
+
+    TestProject.insert_code(test_project, fn ns ->
+      """
+      defmodule #{ns}.Demo.Private do
+        use PrivateModule
+      end
+
+      defmodule #{ns}.DemoNotAllowed do
+        alias #{ns}.Demo.Private
+        Private
+      end
+
+      """
+    end)
+
+    {:error, error} = TestProject.compile(test_project)
+
+    assert error =~
+             ~r/Module Elixir.#{TestProject.ns(test_project)}.DemoNotAllowed is not allowed to use private module Elixir.#{TestProject.ns(test_project)}.Demo.Private/
+  end
+
+  test "module not allowed to require private module" do
+    test_project = TestProject.setup(project: [elixirc_options: [warnings_as_errors: true]])
+
+    TestProject.insert_code(test_project, fn ns ->
+      """
+      defmodule #{ns}.Demo.Private do
+        use PrivateModule
+      end
+
+      defmodule #{ns}.DemoNotAllowed do
+        require #{ns}.Demo.Private
+        Private
+      end
+
+      """
+    end)
+
+    {:error, error} = TestProject.compile(test_project)
+
+    assert error =~
+             ~r/Module Elixir.#{TestProject.ns(test_project)}.DemoNotAllowed is not allowed to use private module Elixir.#{TestProject.ns(test_project)}.Demo.Private/
+  end
+
+  test "module not allowed to use private module" do
+    test_project = TestProject.setup(project: [elixirc_options: [warnings_as_errors: true]])
+
+    TestProject.insert_code(test_project, fn ns ->
+      """
+      defmodule #{ns}.Demo.Private do
+        use PrivateModule
+
+        defmacro __using__(_opts) do
+          quote do
+          end
+        end
+      end
+
+      defmodule #{ns}.DemoNotAllowed do
+        use #{ns}.Demo.Private
+        Private
+      end
+
+      """
+    end)
+
+    {:error, error} = TestProject.compile(test_project)
+
+    assert error =~
+             ~r/Module Elixir.#{TestProject.ns(test_project)}.DemoNotAllowed is not allowed to use private module Elixir.#{TestProject.ns(test_project)}.Demo.Private/
+  end
+
   test "module not allowed to use private structure" do
     test_project = TestProject.setup(project: [elixirc_options: [warnings_as_errors: true]])
 

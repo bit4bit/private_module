@@ -50,6 +50,16 @@ defmodule Mix.Tasks.Compile.PrivateModule do
     :ok
   end
 
+  def trace({:require, _, to_module, _}, env) do
+    CompilerState.add_dependency(env.module, to_module, %{file: env.file, line: env.line})
+    :ok
+  end
+
+  def trace({:alias, _, to_module, _, _}, env) do
+    CompilerState.add_dependency(env.module, to_module, %{file: env.file, line: env.line})
+    :ok
+  end
+
   def trace(_trace, _env) do
     :ok
   end
