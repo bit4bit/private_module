@@ -73,23 +73,20 @@ defmodule Mix.Tasks.Compile.PrivateModule do
   end
 
   defp after_app_compiler(outcome, parsed_opts) do
+    severity = if(warnings_as_errors?(parsed_opts), do: :error, else: :warning)
+    result_status = if(severity == :error, do: :error, else: :ok)
+
     with {status, diagnostics} when status in [:ok, :noop] <- outcome do
-      invalid_dependencies =
+      errors =
         CompilerState.select_dependencies(fn {source_module, to_module, _ctx} ->
           not allowed_to_use_private_module?(source_module, to_module)
         end)
-
-      errors = Enum.map(invalid_dependencies, &diagnostic/1)
+        |> Enum.map(&diagnostic(&1, severity: severity))
 
       if length(errors) > 0 do
         Mix.shell().info("")
         Enum.each(errors, &print_diagnostic_error/1)
-        # only error when warnings-as-error is set
-        if warnings_as_errors?(parsed_opts) do
-          {:error, diagnostics ++ errors}
-        else
-          {:ok, diagnostics ++ errors}
-        end
+        {result_status, diagnostics ++ errors}
       else
         {:ok, diagnostics}
       end
@@ -97,7 +94,8 @@ defmodule Mix.Tasks.Compile.PrivateModule do
   end
 
   defp print_diagnostic_error(error) do
-    Mix.shell().info([[:bright, :red, "#{error.severity}", " "], error.message, ""])
+    color = if(error.severity == :error, do: :red, else: :yellow)
+    Mix.shell().info([[:bright, color, "#{error.severity}: ", :reset], error.message, ""])
   end
 
   defp allowed_to_use_private_module?(source_module, to_module) do
@@ -114,7 +112,7 @@ defmodule Mix.Tasks.Compile.PrivateModule do
     end
   end
 
-  defp diagnostic({source_module, to_module, ctx}) do
+  defp diagnostic({source_module, to_module, ctx}, optionals \\ []) do
     %Mix.Task.Compiler.Diagnostic{
       compiler_name: "private_module",
       details: nil,
@@ -124,6 +122,7 @@ defmodule Mix.Tasks.Compile.PrivateModule do
       position: ctx.line,
       severity: :warning
     }
+    |> struct(optionals)
   end
 
   defp warnings_as_errors?(parsed_opts) do
