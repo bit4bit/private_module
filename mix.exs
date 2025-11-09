@@ -44,7 +44,7 @@ defmodule PrivateModule.MixProject do
   defp description do
     """
     PrivateModule is a library that allows to have the concept of private modules,
-    where a PrivateModule is a module that can only be used within the parent module.
+    where a PrivateModule is a module that can only be used by the parent module.
     """
   end
 
@@ -63,7 +63,7 @@ defmodule PrivateModule.MixProject do
     [
       main: "PrivateModule",
       extras: ["README.md"],
-      source_ref: "v0.1.1",
+      source_ref: "v0.1.11",
       source_url: "https://github.com/bit4bit/private_module"
     ]
   end

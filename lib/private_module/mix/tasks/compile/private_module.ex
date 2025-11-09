@@ -35,12 +35,8 @@ defmodule Mix.Tasks.Compile.PrivateModule do
     on_private_module(env.module, fn %{for_scopes: for_scopes} ->
       CompilerState.add_private_module(env.module)
 
-      if length(for_scopes) > 0 do
-        for custom_scope <- for_scopes do
-          CompilerState.add_private_scope(custom_scope)
-        end
-      else
-        CompilerState.add_private_scope(private_scope_of(env.module))
+      for custom_scope <- [private_scope_of(env.module) | for_scopes] do
+        CompilerState.add_private_scope(custom_scope)
       end
     end)
 
@@ -99,9 +95,7 @@ defmodule Mix.Tasks.Compile.PrivateModule do
   end
 
   defp allowed_to_use_private_module?(source_module, to_module) do
-    if not CompilerState.private_module?(to_module) do
-      true
-    else
+    if CompilerState.private_module?(to_module) do
       CompilerState.select_private_scopes(fn scope ->
         source_module_parts = Module.split(source_module)
         private_scope_parts = Module.split(scope)
@@ -109,6 +103,8 @@ defmodule Mix.Tasks.Compile.PrivateModule do
       end)
       |> Enum.empty?()
       |> Kernel.not()
+    else
+      true
     end
   end
 

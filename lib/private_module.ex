@@ -1,7 +1,7 @@
 defmodule PrivateModule do
   @moduledoc """
   PrivateModule is a library that allows to have the concept of private modules,
-  where a PrivateModule is a module that can only be used within the parent module.
+  where a PrivateModule is a module that can only be used by the parent module.
 
   ## Basic Usage
 
@@ -38,10 +38,20 @@ defmodule PrivateModule do
     # ...
 
     defmodule State do
-      # Private module only allowed to be used within the parent module.
+      # Private module only allowed to be used within the parent module (Implementation).
       # If the module is used outside the parent module, it will raise an error at compile time.
       use PrivateModule
     end
+
+    # ...
+  end
+  ```
+
+  ```elixir
+  defmodule Implementation.State do
+    # Private module only allowed to be used within the parent module (Implementation).
+    # If the module is used outside the parent module, it will raise an error at compile time.
+    use PrivateModule
 
     # ...
   end
