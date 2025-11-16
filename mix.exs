@@ -4,7 +4,7 @@ defmodule PrivateModule.MixProject do
   def project do
     [
       app: :private_module,
-      version: "0.1.11",
+      version: "0.1.12",
       elixir: "~> 1.14",
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
@@ -51,7 +51,7 @@ defmodule PrivateModule.MixProject do
   defp package do
     [
       name: "private_module",
-      files: ~w(lib .formatter.exs mix.exs README* LICENSE*),
+      files: ~w(lib mix.exs README* LICENSE*),
       licenses: ["MIT"],
       links: %{
         "GitHub" => "https://github.com/bit4bit/private_module"
@@ -63,7 +63,7 @@ defmodule PrivateModule.MixProject do
     [
       main: "PrivateModule",
       extras: ["README.md"],
-      source_ref: "v0.1.11",
+      source_ref: "v0.1.12",
       source_url: "https://github.com/bit4bit/private_module"
     ]
   end

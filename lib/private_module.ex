@@ -23,7 +23,7 @@ defmodule PrivateModule do
     # ...
     defp deps do
       [
-        {:private_module, "~> 0.1", runtime: false},
+        {:private_module, "~> 0.1"},
       ]
     end
 
